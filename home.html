@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NYC TAXI FARE PREDICTION</title>
+</head>
+<body>
+    <h2>Enter Features for Prediction</h2>
+    <form action="/predict" method="post">
+        <label>Feature 1: <input type="text" name="f1"></label><br><br>
+        <label>Feature 2: <input type="text" name="f2"></label><br><br>
+        <label>Feature 3: <input type="text" name="f3"></label><br><br>
+        <label>Feature 4: <input type="text" name="f4"></label><br><br>
+        <input type="submit" value="Predict">
+    </form>
+
+    {% if prediction %}
+        <h3>Prediction: {{ prediction }}</h3>
+    {% endif %}
+</body>
+</html>

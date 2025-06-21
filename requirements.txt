@@ -1,0 +1,5 @@
+flask
+xgboost
+numpy
+scikit-learn
+gunicorn  # Required for Render deployment
