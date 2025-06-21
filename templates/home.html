@@ -1,20 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NYC TAXI FARE PREDICTION</title>
+    <title>NYC Taxi Fare Predictor</title>
 </head>
 <body>
-    <h2>Enter Features for Prediction</h2>
+    <h2>NYC Taxi Fare Prediction</h2>
     <form action="/predict" method="post">
-        <label>Feature 1: <input type="text" name="f1"></label><br><br>
-        <label>Feature 2: <input type="text" name="f2"></label><br><br>
-        <label>Feature 3: <input type="text" name="f3"></label><br><br>
-        <label>Feature 4: <input type="text" name="f4"></label><br><br>
-        <input type="submit" value="Predict">
+        <label>Pickup Datetime:</label><br>
+        <input type="datetime-local" name="pickup_datetime" required><br><br>
+
+        <label>Pickup Latitude:</label><br>
+        <input type="text" name="pickup_latitude" required><br><br>
+
+        <label>Pickup Longitude:</label><br>
+        <input type="text" name="pickup_longitude" required><br><br>
+
+        <label>Dropoff Latitude:</label><br>
+        <input type="text" name="dropoff_latitude" required><br><br>
+
+        <label>Dropoff Longitude:</label><br>
+        <input type="text" name="dropoff_longitude" required><br><br>
+
+        <label>Passenger Count:</label><br>
+        <input type="number" name="passenger_count" min="1" max="6" required><br><br>
+
+        <input type="submit" value="Predict Fare">
     </form>
 
     {% if prediction %}
-        <h3>Prediction: {{ prediction }}</h3>
+        <h3>Predicted Fare: ${{ prediction }}</h3>
     {% endif %}
 </body>
 </html>
