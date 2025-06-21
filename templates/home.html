@@ -2,40 +2,194 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NYC Taxi Fare Predictor</title>
-  <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Hind:300" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Arimo&family=Hind:wght@300&family=Open+Sans+Condensed:wght@300&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Arimo', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-family: 'Pacifico', cursive;
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type="submit"] {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      width: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+    .prediction {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e8f4fc;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 18px;
+    }
+    .error {
+      color: #e74c3c;
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #fdecea;
+      border-radius: 4px;
+    }
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="login">
+  <div class="container">
     <h1>NYC Taxi Fare Prediction</h1>
 
     <form action="{{ url_for('predict') }}" method="post">
-      <input type="text" name="pickup_longitude" placeholder="Pickup Longitude" required /><br>
-      <input type="text" name="pickup_latitude" placeholder="Pickup Latitude" required /><br>
-      <input type="text" name="dropoff_longitude" placeholder="Dropoff Longitude" required /><br>
-      <input type="text" name="dropoff_latitude" placeholder="Dropoff Latitude" required /><br>
-      <input type="number" name="passenger_count" placeholder="Passenger Count" min="1" max="6" required /><br>
-      <input type="text" name="pickup_datetime_year" placeholder="Pickup Year (e.g. 2023)" required /><br>
-      <input type="text" name="pickup_datetime_month" placeholder="Pickup Month (1–12)" required /><br>
-      <input type="text" name="pickup_datetime_day" placeholder="Pickup Day (1–31)" required /><br>
-      <input type="text" name="pickup_datetime_weekday" placeholder="Pickup Weekday (0=Mon, 6=Sun)" required /><br>
-      <input type="text" name="pickup_datetime_hour" placeholder="Pickup Hour (0–23)" required /><br>
-      <input type="text" name="trip_distance" placeholder="Trip Distance (km)" required /><br>
-      <input type="text" name="jfk_drop_distance" placeholder="Distance to JFK (km)" required /><br>
-      <input type="text" name="lga_drop_distance" placeholder="Distance to LGA (km)" required /><br>
-      <input type="text" name="ewr_drop_distance" placeholder="Distance to EWR (km)" required /><br>
-      <input type="text" name="met_drop_distance" placeholder="Distance to Met Museum (km)" required /><br>
-      <input type="text" name="wtc_drop_distance" placeholder="Distance to WTC (km)" required /><br>
+      <div class="two-column">
+        <div class="form-group">
+          <label for="pickup_longitude">Pickup Longitude</label>
+          <input type="text" id="pickup_longitude" name="pickup_longitude" placeholder="-73.9857" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="pickup_latitude">Pickup Latitude</label>
+          <input type="text" id="pickup_latitude" name="pickup_latitude" placeholder="40.7484" required>
+        </div>
+      </div>
 
-      <input type="submit" value="Predict Fare" />
+      <div class="two-column">
+        <div class="form-group">
+          <label for="dropoff_longitude">Dropoff Longitude</label>
+          <input type="text" id="dropoff_longitude" name="dropoff_longitude" placeholder="-74.0060" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="dropoff_latitude">Dropoff Latitude</label>
+          <input type="text" id="dropoff_latitude" name="dropoff_latitude" placeholder="40.7128" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="passenger_count">Passenger Count</label>
+        <input type="number" id="passenger_count" name="passenger_count" min="1" max="6" value="1" required>
+      </div>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="pickup_datetime_year">Pickup Year</label>
+          <input type="number" id="pickup_datetime_year" name="pickup_datetime_year" min="2000" max="2030" placeholder="2023" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="pickup_datetime_month">Pickup Month</label>
+          <input type="number" id="pickup_datetime_month" name="pickup_datetime_month" min="1" max="12" placeholder="1-12" required>
+        </div>
+      </div>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="pickup_datetime_day">Pickup Day</label>
+          <input type="number" id="pickup_datetime_day" name="pickup_datetime_day" min="1" max="31" placeholder="1-31" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="pickup_datetime_weekday">Weekday (0=Mon, 6=Sun)</label>
+          <input type="number" id="pickup_datetime_weekday" name="pickup_datetime_weekday" min="0" max="6" placeholder="0-6" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="pickup_datetime_hour">Pickup Hour (0-23)</label>
+        <input type="number" id="pickup_datetime_hour" name="pickup_datetime_hour" min="0" max="23" placeholder="0-23" required>
+      </div>
+
+      <div class="form-group">
+        <label for="trip_distance">Trip Distance (km)</label>
+        <input type="number" step="0.1" id="trip_distance" name="trip_distance" min="0" placeholder="Distance in km" required>
+      </div>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="jfk_drop_distance">Distance to JFK (km)</label>
+          <input type="number" step="0.1" id="jfk_drop_distance" name="jfk_drop_distance" min="0" placeholder="Distance in km" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="lga_drop_distance">Distance to LGA (km)</label>
+          <input type="number" step="0.1" id="lga_drop_distance" name="lga_drop_distance" min="0" placeholder="Distance in km" required>
+        </div>
+      </div>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="ewr_drop_distance">Distance to EWR (km)</label>
+          <input type="number" step="0.1" id="ewr_drop_distance" name="ewr_drop_distance" min="0" placeholder="Distance in km" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="met_drop_distance">Distance to Met Museum (km)</label>
+          <input type="number" step="0.1" id="met_drop_distance" name="met_drop_distance" min="0" placeholder="Distance in km" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="wtc_drop_distance">Distance to WTC (km)</label>
+        <input type="number" step="0.1" id="wtc_drop_distance" name="wtc_drop_distance" min="0" placeholder="Distance in km" required>
+      </div>
+
+      <input type="submit" value="Predict Fare">
     </form>
 
     {% if prediction %}
-      <h3>Predicted Fare: ${{ prediction }}</h3>
+      <div class="prediction">
+        <h3>Predicted Fare: ${{ "%.2f"|format(prediction) }}</h3>
+      </div>
+    {% endif %}
+
+    {% if error %}
+      <div class="error">
+        <p>{{ error }}</p>
+      </div>
     {% endif %}
   </div>
 </body>
