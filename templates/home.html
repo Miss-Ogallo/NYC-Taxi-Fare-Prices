@@ -1,34 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>NYC Taxi Fare Predictor</title>
+  <meta charset="UTF-8">
+  <title>NYC Taxi Fare Predictor</title>
+  <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Hind:300" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet">
 </head>
+
 <body>
-    <h2>NYC Taxi Fare Prediction</h2>
-    <form action="/predict" method="post">
-        <label>Pickup Datetime:</label><br>
-        <input type="datetime-local" name="pickup_datetime" required><br><br>
+  <div class="login">
+    <h1>NYC Taxi Fare Prediction</h1>
 
-        <label>Pickup Latitude:</label><br>
-        <input type="text" name="pickup_latitude" required><br><br>
+    <form action="{{ url_for('predict') }}" method="post">
+      <input type="text" name="pickup_longitude" placeholder="Pickup Longitude" required /><br>
+      <input type="text" name="pickup_latitude" placeholder="Pickup Latitude" required /><br>
+      <input type="text" name="dropoff_longitude" placeholder="Dropoff Longitude" required /><br>
+      <input type="text" name="dropoff_latitude" placeholder="Dropoff Latitude" required /><br>
+      <input type="number" name="passenger_count" placeholder="Passenger Count" min="1" max="6" required /><br>
+      <input type="text" name="pickup_datetime_year" placeholder="Pickup Year (e.g. 2023)" required /><br>
+      <input type="text" name="pickup_datetime_month" placeholder="Pickup Month (1–12)" required /><br>
+      <input type="text" name="pickup_datetime_day" placeholder="Pickup Day (1–31)" required /><br>
+      <input type="text" name="pickup_datetime_weekday" placeholder="Pickup Weekday (0=Mon, 6=Sun)" required /><br>
+      <input type="text" name="pickup_datetime_hour" placeholder="Pickup Hour (0–23)" required /><br>
+      <input type="text" name="trip_distance" placeholder="Trip Distance (km)" required /><br>
+      <input type="text" name="jfk_drop_distance" placeholder="Distance to JFK (km)" required /><br>
+      <input type="text" name="lga_drop_distance" placeholder="Distance to LGA (km)" required /><br>
+      <input type="text" name="ewr_drop_distance" placeholder="Distance to EWR (km)" required /><br>
+      <input type="text" name="met_drop_distance" placeholder="Distance to Met Museum (km)" required /><br>
+      <input type="text" name="wtc_drop_distance" placeholder="Distance to WTC (km)" required /><br>
 
-        <label>Pickup Longitude:</label><br>
-        <input type="text" name="pickup_longitude" required><br><br>
-
-        <label>Dropoff Latitude:</label><br>
-        <input type="text" name="dropoff_latitude" required><br><br>
-
-        <label>Dropoff Longitude:</label><br>
-        <input type="text" name="dropoff_longitude" required><br><br>
-
-        <label>Passenger Count:</label><br>
-        <input type="number" name="passenger_count" min="1" max="6" required><br><br>
-
-        <input type="submit" value="Predict Fare">
+      <input type="submit" value="Predict Fare" />
     </form>
 
     {% if prediction %}
-        <h3>Predicted Fare: ${{ prediction }}</h3>
+      <h3>Predicted Fare: ${{ prediction }}</h3>
     {% endif %}
+  </div>
 </body>
 </html>
