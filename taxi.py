@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # Load your trained model
 try:
-    model = pickle.load(open('xgb_model.pkl', 'rb'))
+    model = pickle.load(open('xgb_model.joblib', 'rb'))
 except:
     print("Error loading model")
     model = None
