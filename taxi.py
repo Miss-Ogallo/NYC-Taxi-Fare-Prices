@@ -1,86 +1,81 @@
-import os
+from flask import Flask, render_template, request, jsonify
 import pickle
-from flask import Flask, request, jsonify
 import numpy as np
-import xgboost as xgb  # Ensure this is in requirements.txt
+from datetime import datetime
+import traceback
 
 app = Flask(__name__)
 
-# --- Constants ---
-MODEL_DIR = os.path.join(os.path.dirname(__file__), 'model')
-MODEL_PATH = os.path.join(MODEL_DIR, 'xgboost_model.pkl')
-FEATURES = [
-    'passenger_count', 
-    'trip_distance', 
-    'pickup_hour',
-    'pickup_dayofweek',
-    'PULocationID',
-    'DOLocationID'
-]
+# Load your trained model
+try:
+    model = pickle.load(open('xgb_model.pkl', 'rb'))
+except:
+    print("Error loading model")
+    model = None
 
-# --- Load Model ---
-def load_model():
-    """Load XGBoost model with error handling"""
-    try:
-        with open(MODEL_PATH, 'rb') as f:
-            model = pickle.load(f)
-        print("✅ Model loaded successfully")
-        return model
-    except Exception as e:
-        print(f"❌ Model loading failed: {str(e)}")
-        raise
+@app.route('/')
+def home():
+    return render_template('home.html')  # Assuming your HTML is saved as home.html
 
-model = load_model()
-
-# --- Prediction Logic ---
-def validate_input(input_data):
-    """Check for required features and types"""
-    missing = [f for f in FEATURES if f not in input_data]
-    if missing:
-        raise ValueError(f"Missing features: {missing}")
-    
-    # Convert to float where needed
-    return {
-        'passenger_count': float(input_data['passenger_count']),
-        'trip_distance': float(input_data['trip_distance']),
-        'pickup_hour': float(input_data['pickup_hour']),
-        'pickup_dayofweek': float(input_data['pickup_dayofweek']),
-        'PULocationID': float(input_data['PULocationID']),
-        'DOLocationID': float(input_data['DOLocationID'])
-    }
-
-# --- API Endpoint ---
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # 1. Get and validate input
-        input_data = request.get_json()
-        validated_data = validate_input(input_data)
+        # Get all form data
+        pickup_longitude = float(request.form['pickup_longitude'])
+        pickup_latitude = float(request.form['pickup_latitude'])
+        dropoff_longitude = float(request.form['dropoff_longitude'])
+        dropoff_latitude = float(request.form['dropoff_latitude'])
+        passenger_count = int(request.form['passenger_count'])
         
-        # 2. Prepare feature array in exact training order
-        features = np.array([[validated_data[f] for f in FEATURES]])
+        # Date/time features
+        pickup_datetime_year = int(request.form['pickup_datetime_year'])
+        pickup_datetime_month = int(request.form['pickup_datetime_month'])
+        pickup_datetime_day = int(request.form['pickup_datetime_day'])
+        pickup_datetime_weekday = int(request.form['pickup_datetime_weekday'])
+        pickup_datetime_hour = int(request.form['pickup_datetime_hour'])
         
-        # 3. Predict (XGBoost expects 2D array)
-        prediction = model.predict(features)[0]
+        # Distance features
+        trip_distance = float(request.form['trip_distance'])
+        jfk_drop_distance = float(request.form['jfk_drop_distance'])
+        lga_drop_distance = float(request.form['lga_drop_distance'])
+        ewr_drop_distance = float(request.form['ewr_drop_distance'])
+        met_drop_distance = float(request.form['met_drop_distance'])
+        wtc_drop_distance = float(request.form['wtc_drop_distance'])
         
-        # 4. Convert dollars to cents (avoid float currency)
-        return jsonify({
-            'fare_cents': int(prediction * 100),
-            'status': 'success'
-        })
-    
+        # Create feature array in the same order as your model expects
+        features = [
+            pickup_longitude,
+            pickup_latitude,
+            dropoff_longitude,
+            dropoff_latitude,
+            passenger_count,
+            pickup_datetime_year,
+            pickup_datetime_month,
+            pickup_datetime_day,
+            pickup_datetime_weekday,
+            pickup_datetime_hour,
+            trip_distance,
+            jfk_drop_distance,
+            lga_drop_distance,
+            ewr_drop_distance,
+            met_drop_distance,
+            wtc_drop_distance
+        ]
+        
+        # Convert to numpy array and reshape for prediction
+        final_features = np.array(features).reshape(1, -1)
+        
+        # Make prediction
+        if model:
+            prediction = model.predict(final_features)
+            output = round(float(prediction[0]), 2)
+            return render_template('home.html', prediction=output)
+        else:
+            return render_template('home.html', error="Model not loaded")
+            
     except Exception as e:
-        return jsonify({
-            'error': str(e),
-            'status': 'failed'
-        }), 400
+        print(traceback.format_exc())
+        return render_template('home.html', error=f"Error processing request: {str(e)}")
 
-# --- Health Check ---
-@app.route('/')
-def health_check():
-    return "Taxi Fare Prediction Service - Healthy ✅"
-
-# --- Run Server ---
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
