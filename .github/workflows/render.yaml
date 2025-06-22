@@ -14,7 +14,7 @@ jobs:
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       run: |
-        curl -X POST "https://api.render.com/deploy/srv-d1bgh76uk2gs739ork20?key=$RENDER_API_KEY" \
+        curl -X POST "https://api.render.com/deploy/srv-d1bkap6uk2gs739s29b0?key=$RENDER_API_KEY" \
              -H "Accept: application/json"git 
              
           

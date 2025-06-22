@@ -78,4 +78,4 @@ def predict():
         return render_template('home.html', error=f"Error processing request: {str(e)}")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
