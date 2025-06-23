@@ -4,193 +4,132 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NYC Taxi Fare Predictor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Arimo&family=Hind:wght@300&family=Open+Sans+Condensed:wght@300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Arimo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    body {
-      font-family: 'Arimo', sans-serif;
-      background-color: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    }
-    h1 {
-      font-family: 'Pacifico', cursive;
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 30px;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    input[type="submit"] {
-      background-color: #3498db;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      width: 100%;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
-    }
-    input[type="submit"]:hover {
-      background-color: #2980b9;
-    }
-    .prediction {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #e8f4fc;
-      border-radius: 4px;
-      text-align: center;
-      font-size: 18px;
-    }
-    .error {
-      color: #e74c3c;
-      margin-top: 15px;
-      padding: 10px;
-      background-color: #fdecea;
-      border-radius: 4px;
-    }
-    .two-column {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
+    body { font-family: 'Arimo', sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 720px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    h1 { font-family: 'Pacifico', cursive; text-align: center; color: #2c3e50; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; }
+    input[type="number"], input[type="submit"] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+    input[type="submit"] { background-color: #3498db; color: white; cursor: pointer; font-size: 16px; }
+    input[type="submit"]:hover { background-color: #2980b9; }
+    .prediction { margin-top: 20px; padding: 15px; background: #e8f4fc; border-radius: 4px; text-align: center; font-size: 18px; }
+    .map-container { height: 300px; margin-bottom: 15px; border-radius: 8px; overflow: hidden; }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>NYC Taxi Fare Prediction</h1>
+<div class="container">
+  <h1>NYC Taxi Fare Prediction</h1>
+  <form action="{{ url_for('predict') }}" method="post">
+    <div class="form-group">
+      <label>Pickup Location</label>
+      <div id="pickup_map" class="map-container"></div>
+    </div>
+    <div class="form-group">
+      <label>Dropoff Location</label>
+      <div id="dropoff_map" class="map-container"></div>
+    </div>
+    <input type="hidden" name="pickup_longitude" id="pickup_longitude" required>
+    <input type="hidden" name="pickup_latitude" id="pickup_latitude" required>
+    <input type="hidden" name="dropoff_longitude" id="dropoff_longitude" required>
+    <input type="hidden" name="dropoff_latitude" id="dropoff_latitude" required>
 
-    <form action="{{ url_for('predict') }}" method="post">
-      <div class="two-column">
-        <div class="form-group">
-          <label for="pickup_longitude">Pickup Longitude</label>
-          <input type="text" id="pickup_longitude" name="pickup_longitude" placeholder="-73.9857" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="pickup_latitude">Pickup Latitude</label>
-          <input type="text" id="pickup_latitude" name="pickup_latitude" placeholder="40.7484" required>
-        </div>
-      </div>
+    <div class="form-group">
+      <label for="passenger_count">Passenger Count</label>
+      <input type="number" id="passenger_count" name="passenger_count" min="1" max="6" value="1" required>
+    </div>
+    <div class="form-group">
+      <label for="pickup_datetime_year">Pickup Year</label>
+      <input type="number" id="pickup_datetime_year" name="pickup_datetime_year" value="2025" required>
+    </div>
+    <div class="form-group">
+      <label for="pickup_datetime_month">Pickup Month</label>
+      <input type="number" id="pickup_datetime_month" name="pickup_datetime_month" value="6" required>
+    </div>
+    <div class="form-group">
+      <label for="pickup_datetime_day">Pickup Day</label>
+      <input type="number" id="pickup_datetime_day" name="pickup_datetime_day" value="23" required>
+    </div>
+    <div class="form-group">
+      <label for="pickup_datetime_weekday">Weekday (0=Mon, 6=Sun)</label>
+      <input type="number" id="pickup_datetime_weekday" name="pickup_datetime_weekday" value="0" required>
+    </div>
+    <div class="form-group">
+      <label for="pickup_datetime_hour">Hour (0-23)</label>
+      <input type="number" id="pickup_datetime_hour" name="pickup_datetime_hour" value="10" required>
+    </div>
+    <input type="hidden" name="trip_distance" id="trip_distance" required>
+    <input type="hidden" name="jfk_drop_distance" id="jfk_drop_distance">
+    <input type="hidden" name="lga_drop_distance" id="lga_drop_distance">
+    <input type="hidden" name="ewr_drop_distance" id="ewr_drop_distance">
+    <input type="hidden" name="met_drop_distance" id="met_drop_distance">
+    <input type="hidden" name="wtc_drop_distance" id="wtc_drop_distance">
+    <input type="submit" value="Predict Fare">
+  </form>
+  {% if prediction_text %}
+    <div class="prediction"><h3>{{ prediction_text }}</h3></div>
+  {% endif %}
+  {% if error %}
+    <div class="prediction"><p>{{ error }}</p></div>
+  {% endif %}
+</div>
 
-      <div class="two-column">
-        <div class="form-group">
-          <label for="dropoff_longitude">Dropoff Longitude</label>
-          <input type="text" id="dropoff_longitude" name="dropoff_longitude" placeholder="-74.0060" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="dropoff_latitude">Dropoff Latitude</label>
-          <input type="text" id="dropoff_latitude" name="dropoff_latitude" placeholder="40.7128" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="passenger_count">Passenger Count</label>
-        <input type="number" id="passenger_count" name="passenger_count" min="1" max="6" value="1" required>
-      </div>
-
-      <div class="two-column">
-        <div class="form-group">
-          <label for="pickup_datetime_year">Pickup Year</label>
-          <input type="number" id="pickup_datetime_year" name="pickup_datetime_year" min="2000" max="2030" placeholder="2023" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="pickup_datetime_month">Pickup Month</label>
-          <input type="number" id="pickup_datetime_month" name="pickup_datetime_month" min="1" max="12" placeholder="1-12" required>
-        </div>
-      </div>
-
-      <div class="two-column">
-        <div class="form-group">
-          <label for="pickup_datetime_day">Pickup Day</label>
-          <input type="number" id="pickup_datetime_day" name="pickup_datetime_day" min="1" max="31" placeholder="1-31" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="pickup_datetime_weekday">Weekday (0=Mon, 6=Sun)</label>
-          <input type="number" id="pickup_datetime_weekday" name="pickup_datetime_weekday" min="0" max="6" placeholder="0-6" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="pickup_datetime_hour">Pickup Hour (0-23)</label>
-        <input type="number" id="pickup_datetime_hour" name="pickup_datetime_hour" min="0" max="23" placeholder="0-23" required>
-      </div>
-
-      <div class="form-group">
-        <label for="trip_distance">Trip Distance (km)</label>
-        <input type="number" step="0.1" id="trip_distance" name="trip_distance" min="0" placeholder="Distance in km" required>
-      </div>
-
-      <div class="two-column">
-        <div class="form-group">
-          <label for="jfk_drop_distance">Distance to JFK (km)</label>
-          <input type="number" step="0.1" id="jfk_drop_distance" name="jfk_drop_distance" min="0" placeholder="Distance in km" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="lga_drop_distance">Distance to LGA (km)</label>
-          <input type="number" step="0.1" id="lga_drop_distance" name="lga_drop_distance" min="0" placeholder="Distance in km" required>
-        </div>
-      </div>
-
-      <div class="two-column">
-        <div class="form-group">
-          <label for="ewr_drop_distance">Distance to EWR (km)</label>
-          <input type="number" step="0.1" id="ewr_drop_distance" name="ewr_drop_distance" min="0" placeholder="Distance in km" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="met_drop_distance">Distance to Met Museum (km)</label>
-          <input type="number" step="0.1" id="met_drop_distance" name="met_drop_distance" min="0" placeholder="Distance in km" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="wtc_drop_distance">Distance to WTC (km)</label>
-        <input type="number" step="0.1" id="wtc_drop_distance" name="wtc_drop_distance" min="0" placeholder="Distance in km" required>
-      </div>
-
-      <input type="submit" value="Predict Fare">
-    </form>
-
-    {% if prediction_text %}
-      <div class="prediction">
-        <h3>{{ prediction_text }}</h3>
-      </div>
-    {% endif %}
-
-    {% if error %}
-      <div class="error">
-        <p>{{ error }}</p>
-      </div>
-    {% endif %}
-  </div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  let pickupLatLng = null;
+  let dropoffLatLng = null;
+  const landmarks = {
+    jfk: { lat: 40.6413, lon: -73.7781 },
+    lga: { lat: 40.7769, lon: -73.8740 },
+    ewr: { lat: 40.6895, lon: -74.1745 },
+    met: { lat: 40.7794, lon: -73.9632 },
+    wtc: { lat: 40.7127, lon: -74.0134 }
+  };
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  function updateTripDistance() {
+    if (pickupLatLng && dropoffLatLng) {
+      const dist = calculateDistance(pickupLatLng.lat, pickupLatLng.lng, dropoffLatLng.lat, dropoffLatLng.lng);
+      document.getElementById("trip_distance").value = dist.toFixed(2);
+    }
+  }
+  function updateLandmarkDistances(lat, lon) {
+    document.getElementById("jfk_drop_distance").value = calculateDistance(lat, lon, landmarks.jfk.lat, landmarks.jfk.lon).toFixed(2);
+    document.getElementById("lga_drop_distance").value = calculateDistance(lat, lon, landmarks.lga.lat, landmarks.lga.lon).toFixed(2);
+    document.getElementById("ewr_drop_distance").value = calculateDistance(lat, lon, landmarks.ewr.lat, landmarks.ewr.lon).toFixed(2);
+    document.getElementById("met_drop_distance").value = calculateDistance(lat, lon, landmarks.met.lat, landmarks.met.lon).toFixed(2);
+    document.getElementById("wtc_drop_distance").value = calculateDistance(lat, lon, landmarks.wtc.lat, landmarks.wtc.lon).toFixed(2);
+  }
+  const pickupMap = L.map('pickup_map').setView([40.7484, -73.9857], 12);
+  const dropoffMap = L.map('dropoff_map').setView([40.7484, -73.9857], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pickupMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dropoffMap);
+  let pickupMarker = null;
+  pickupMap.on('click', function(e) {
+    if (pickupMarker) pickupMap.removeLayer(pickupMarker);
+    pickupMarker = L.marker(e.latlng).addTo(pickupMap);
+    pickupLatLng = e.latlng;
+    document.getElementById("pickup_latitude").value = e.latlng.lat;
+    document.getElementById("pickup_longitude").value = e.latlng.lng;
+    updateTripDistance();
+  });
+  let dropoffMarker = null;
+  dropoffMap.on('click', function(e) {
+    if (dropoffMarker) dropoffMap.removeLayer(dropoffMarker);
+    dropoffMarker = L.marker(e.latlng).addTo(dropoffMap);
+    dropoffLatLng = e.latlng;
+    document.getElementById("dropoff_latitude").value = e.latlng.lat;
+    document.getElementById("dropoff_longitude").value = e.latlng.lng;
+    updateTripDistance();
+    updateLandmarkDistances(e.latlng.lat, e.latlng.lng);
+  });
+</script>
 </body>
 </html>
